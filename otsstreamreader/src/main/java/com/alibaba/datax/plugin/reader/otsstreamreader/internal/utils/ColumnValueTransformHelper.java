@@ -1,6 +1,6 @@
 package com.alibaba.datax.plugin.reader.otsstreamreader.internal.utils;
-
 import com.alibaba.datax.common.element.*;
+import com.alibaba.datax.common.element.Record;
 import com.alibaba.datax.common.element.Column;
 import com.alicloud.openservices.tablestore.model.*;
 

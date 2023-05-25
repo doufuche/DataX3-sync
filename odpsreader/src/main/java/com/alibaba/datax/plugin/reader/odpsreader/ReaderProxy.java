@@ -1,5 +1,4 @@
 package com.alibaba.datax.plugin.reader.odpsreader;
-
 import com.alibaba.datax.common.element.*;
 import com.alibaba.datax.common.exception.DataXException;
 import com.alibaba.datax.common.plugin.RecordSender;
