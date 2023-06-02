@@ -1,12 +1,6 @@
 package com.alibaba.datax.plugin.rdbms.reader;
 
-import com.alibaba.datax.common.element.BoolColumn;
-import com.alibaba.datax.common.element.BytesColumn;
-import com.alibaba.datax.common.element.DateColumn;
-import com.alibaba.datax.common.element.DoubleColumn;
-import com.alibaba.datax.common.element.LongColumn;
-import com.alibaba.datax.common.element.Record;
-import com.alibaba.datax.common.element.StringColumn;
+import com.alibaba.datax.common.element.*;
 import com.alibaba.datax.common.exception.DataXException;
 import com.alibaba.datax.common.plugin.RecordSender;
 import com.alibaba.datax.common.plugin.TaskPluginCollector;
@@ -22,7 +16,6 @@ import com.alibaba.datax.plugin.rdbms.util.DBUtilErrorCode;
 import com.alibaba.datax.plugin.rdbms.util.DataBaseType;
 import com.alibaba.datax.plugin.rdbms.util.RdbmsException;
 import com.google.common.collect.Lists;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +90,49 @@ public class CommonRdbmsReader {
             exec.shutdownNow();
         }
 
+        public void prepare(Configuration originalConfig, DataBaseType DATABASE_TYPE) {
+            int tableNumber = originalConfig.getInt(com.alibaba.datax.plugin.rdbms.reader.Constant.TABLE_NUMBER_MARK);
+            if (tableNumber == 1) {
+                String username = originalConfig.getString(com.alibaba.datax.plugin.rdbms.reader.Key.USERNAME);
+                String password = originalConfig.getString(com.alibaba.datax.plugin.rdbms.reader.Key.PASSWORD);
+
+                List<Object> conns = originalConfig.getList(com.alibaba.datax.plugin.rdbms.reader.Constant.CONN_MARK,
+                        Object.class);
+                Configuration connConf = Configuration.from(conns.get(0)
+                        .toString());
+
+                // 这里的 jdbcUrl 已经 append 了合适后缀参数
+                String jdbcUrl = connConf.getString(com.alibaba.datax.plugin.rdbms.reader.Key.JDBC_URL);
+                originalConfig.set(com.alibaba.datax.plugin.rdbms.reader.Key.JDBC_URL, jdbcUrl);
+
+                String table = connConf.getList(com.alibaba.datax.plugin.rdbms.reader.Key.TABLE, String.class).get(0);
+                //判断table为"*"时，执行queryTablesSql，并将结果赋值给table
+                if("*".equals(table)) {
+                    List<String> queryTables = queryTables(originalConfig, DATABASE_TYPE, username, password, connConf, jdbcUrl, table);
+                    originalConfig.set(com.alibaba.datax.plugin.rdbms.reader.Key.TABLE, queryTables);
+                }
+            }
+
+            LOG.debug("After job prepare(), originalConfig now is:[\n{}\n]",
+                    originalConfig.toJSON());
+        }
+
+        private static List<String> queryTables(Configuration originalConfig, DataBaseType DATABASE_TYPE, String username, String password, Configuration connConf, String jdbcUrl, String table) {
+            Connection conn = DBUtil.getConnection(DATABASE_TYPE,
+                    jdbcUrl, username, password);
+
+            String readerQuerySql = connConf.getList("queryTablesSql").get(0).toString();
+            if (StringUtils.isEmpty(readerQuerySql)) {
+                throw new RuntimeException("syncTablesJob, the queryTablesSql property must be not null!");
+            }
+
+            String columnName = originalConfig.getList("column").get(0).toString();
+            List<String> queryTables = DBUtil.queryResultColumns(conn, readerQuerySql, columnName, DATABASE_TYPE);
+            DBUtil.closeDBResources(null, null, conn);
+            LOG.info("Begin to execute reader.prepare.table:{}. context tables:{}.",
+                    table, queryTables);
+            return queryTables;
+        }
 
         public List<Configuration> split(Configuration originalConfig,
                                          int adviceNumber) {
@@ -350,4 +386,6 @@ public class CommonRdbmsReader {
         }
     }
 
+    
+    
 }

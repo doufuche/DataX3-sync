@@ -47,7 +47,9 @@ public class OracleWriter extends Writer {
 		public void prepare() {
             //oracle实跑先不做权限检查
             //this.commonRdbmsWriterJob.privilegeValid(this.originalConfig, DATABASE_TYPE);
-			this.commonRdbmsWriterJob.prepare(this.originalConfig);
+			Configuration jobConf = super.getPeerPluginJobConf();
+			//((JSONObject) super.getPeerPluginJobConf().root).toString();		//结果:{"username":"SANJIA_TEMPLATE","password":"123456","connection":[{"jdbcUrl":["jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"],"querySql":["SELECT DBMS_METADATA.GET_DDL('PROCEDURE', object_name) as content FROM user_procedures WHERE object_type = 'PROCEDURE' "]}],"column":["content"]}
+			this.commonRdbmsWriterJob.prepare(this.originalConfig, jobConf);
 		}
 
 		@Override

@@ -1,0 +1,69 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "byte": 1048576
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "oraclereader",
+          "parameter": {
+            "username": "SANJIA_TEMPLATE",
+            "password": "123456",
+            "column": ["*"],
+            "splitPk": "",
+            "connection": [
+              {
+                "table": [
+                  "*"
+                ],
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                ],
+                "queryTablesSql": ["SELECT table_name as CONTENT FROM user_tables"]
+              }
+            ],
+            "column": ["CONTENT"]
+          }
+        },
+        "writer": {
+          "name": "oraclewriter",
+          "parameter": {
+            "username": "SANJIA_TEMPLATE_1",
+            "password": "123456",
+	    "writerThreadCount":4,
+            "column": ["*"],
+	    "autoCreateTable": "true",
+            "connection": [
+              {
+                "table": [
+                  "*"
+                ],
+                "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL",
+                "queryTablesSql": ["SELECT table_name as CONTENT FROM user_tables"]
+              }
+            ],
+            "column": ["CONTENT"]
+          }
+        }
+      }
+    ]
+  }
+}

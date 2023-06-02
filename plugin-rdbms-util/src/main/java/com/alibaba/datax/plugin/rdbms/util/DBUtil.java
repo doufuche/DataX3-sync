@@ -446,6 +446,24 @@ public final class DBUtil {
         return stmt.executeQuery(sql);
     }
 
+
+    public static List<String> queryResultColumns(Connection conn, String sql, String columnName, DataBaseType dataBaseType) {
+        List<String> columns = new ArrayList<>();
+        ResultSet rs = null;
+        try {
+            rs = query(conn, sql);
+            while (DBUtil.asyncResultSetNext(rs)) {
+                String colName = rs.getString(columnName);
+                columns.add(colName);
+            }
+            return columns;
+        } catch (Exception e) {
+            throw RdbmsException.asQueryException(dataBaseType, e, sql, null, null);
+        } finally {
+            DBUtil.closeDBResources(rs, null, null);
+        }
+    }
+
     public static void executeSqlWithoutResultSet(Statement stmt, String sql)
             throws SQLException {
         stmt.execute(sql);

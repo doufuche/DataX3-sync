@@ -1,0 +1,91 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "memory": true,
+        "capacity": 1024,
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      },
+      "job": {
+        "tracker": {
+            "type": "jobtracker",
+            "host": "127.0.0.1",
+            "port": 8083
+        }
+      }
+    },
+    "debug": {
+      "enabled": true,
+      "address": "localhost:10001"  
+    }
+  },
+  "job": {
+    "tracker": {
+      "type": "jobtracker",
+      "host": "127.0.0.1",
+      "port": 8083
+    },
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "byte": 1048576
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "oraclereader",
+          "parameter": {
+            "username": "SANJIA_TEMPLATE",
+            "password": "123456",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                ],
+		"querySql": ["SELECT DBMS_METADATA.GET_DDL('PROCEDURE', object_name) as content FROM user_procedures WHERE object_type = 'PROCEDURE' "]
+              }
+            ],
+	    "column": ["content"]
+          }
+        },
+        "writer": {
+          "name": "oraclewriter",
+          "parameter": {
+            "username": "SANJIA_TEMPLATE_1",
+            "password": "123456",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL",
+                "table": [
+                  "LOG_DATAX"
+                ]
+              }
+            ],
+            "column": ["CONTENT"],
+	    "preSql": [
+        "CREATE OR REPLACE PROCEDURE \"INSERT_EMPLOYEE\" (
+    P_ID IN VARCHAR2,
+    P_INSPECT_USER IN VARCHAR2
+    )
+    IS
+    BEGIN
+    INSERT INTO \"MACHINE_ROOM_INSPECT\" (ID, INSPECT_USER)
+    VALUES (P_ID, P_INSPECT_USER);
+    COMMIT;
+    END;"],
+        "postSql":["TRUNCATE TABLE LOG_DATAX"]
+          }
+        }
+      }
+    ]
+  }
+}
+

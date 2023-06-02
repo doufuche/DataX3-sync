@@ -155,6 +155,10 @@ public final class OriginalConfPretreatmentUtil {
 
                     String tableName = originalConfig.getString(String.format(
                             "%s[0].%s[0]", Constant.CONN_MARK, Key.TABLE));
+                    if ("*".equals(tableName)) {
+                        LOG.info("table is queryAll,break;");
+                        return;
+                    }
 
                     List<String> allColumns = DBUtil.getTableColumns(
                             DATABASE_TYPE, jdbcUrl, username, password,

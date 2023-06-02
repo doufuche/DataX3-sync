@@ -12,6 +12,8 @@ import com.alibaba.datax.plugin.rdbms.util.DataBaseType;
 import com.alibaba.datax.plugin.rdbms.util.RdbmsException;
 import com.alibaba.datax.plugin.rdbms.writer.util.OriginalConfPretreatmentUtil;
 import com.alibaba.datax.plugin.rdbms.writer.util.WriterUtil;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -22,6 +24,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CommonRdbmsWriter {
@@ -125,6 +129,108 @@ public class CommonRdbmsWriter {
 
             LOG.debug("After job prepare(), originalConfig now is:[\n{}\n]",
                     originalConfig.toJSON());
+        }
+
+        public void prepare(Configuration originalConfig, Configuration readerConfig) {
+            int tableNumber = originalConfig.getInt(Constant.TABLE_NUMBER_MARK);
+            if (tableNumber == 1) {
+                String username = originalConfig.getString(Key.USERNAME);
+                String password = originalConfig.getString(Key.PASSWORD);
+
+                List<Object> conns = originalConfig.getList(Constant.CONN_MARK,
+                        Object.class);
+                Configuration connConf = Configuration.from(conns.get(0)
+                        .toString());
+
+                // 这里的 jdbcUrl 已经 append 了合适后缀参数
+                String jdbcUrl = connConf.getString(Key.JDBC_URL);
+                originalConfig.set(Key.JDBC_URL, jdbcUrl);
+
+                String table = connConf.getList(Key.TABLE, String.class).get(0);
+                //判断table为"*"时，执行queryTablesSql，并将结果赋值给table
+                if("*".equals(table)) {
+                    List<String> queryTables = queryTables(originalConfig, username, password, connConf, jdbcUrl, table);
+                    originalConfig.set(Key.TABLE, queryTables);
+                }else {
+                    originalConfig.set(Key.TABLE, table);
+                }
+                List<String> preSqls = originalConfig.getList(Key.PRE_SQL,
+                        String.class);
+                List<String> renderedPreSqls = WriterUtil.renderPreOrPostSqls(
+                        preSqls, table);
+
+                originalConfig.remove(Constant.CONN_MARK);
+
+
+                if (null != renderedPreSqls && !renderedPreSqls.isEmpty()) {
+                    //目前该规则只支持同类型数据库同步
+                    //判断renderedPreSqls包含${querySql}时，从renderConfig中获取querySql并执行，获取结果返回赋值给该${querySql}
+                    List<String> queryResult = null;
+                    if (renderedPreSqls.contains("${querySql}")) {
+                        renderedPreSqls = getRenderedPreSqls(readerConfig, renderedPreSqls);
+                    }
+
+                    // 说明有 preSql 配置，则此处删除掉
+                    originalConfig.remove(Key.PRE_SQL);
+
+                    Connection conn = DBUtil.getConnection(dataBaseType,
+                            jdbcUrl, username, password);
+                    LOG.info("Begin to execute preSqls:[{}]. context info:{}.",
+                            StringUtils.join(renderedPreSqls, ";"), jdbcUrl);
+
+                    WriterUtil.executeSqls(conn, renderedPreSqls, jdbcUrl, dataBaseType);
+                    DBUtil.closeDBResources(null, null, conn);
+                }
+            }
+
+            LOG.debug("After job prepare(), originalConfig now is:[\n{}\n]",
+                    originalConfig.toJSON());
+        }
+
+        private List<String> getRenderedPreSqls(Configuration readerConfig, List<String> renderedPreSqls) {
+            List<String> queryResult;
+            JSONObject readerConfigJS = ((JSONObject) readerConfig.getInternal());
+            JSONObject readerJdbcJS = ((JSONObject)readerConfigJS.getJSONArray("connection").get(0));
+            String readerQuerySql = readerJdbcJS.getJSONArray("querySql").get(0).toString();
+            String readerJdbc = readerJdbcJS.getJSONArray("jdbcUrl").get(0).toString();
+            String columnName = readerConfigJS.getJSONArray("column").get(0).toString();
+
+            Connection conn = DBUtil.getConnection(dataBaseType,
+                    readerJdbc, readerConfigJS.getString("username"), readerConfigJS.getString("password"));
+            LOG.info("Begin to execute reader.querySql:{}. context info:{}.",
+                    readerQuerySql, readerJdbc);
+
+            queryResult = DBUtil.queryResultColumns(conn, readerQuerySql, columnName, dataBaseType);
+            DBUtil.closeDBResources(null, null, conn);
+
+            if (queryResult!=null && queryResult.size()>0) {
+                // 将reader库中的schema名称字符串去掉
+                String ss = "\""+readerConfigJS.getString("username")+"\".";
+                List<String> convertPreSqlList = new ArrayList<>();
+                for(String temp : queryResult){
+                    String replaceStr = temp.replaceAll(ss, "");
+                    convertPreSqlList.add(replaceStr);
+                }
+                renderedPreSqls = convertPreSqlList;
+            }
+            return renderedPreSqls;
+        }
+
+        private List<String> queryTables(Configuration originalConfig, String username, String password, Configuration connConf, String jdbcUrl, String table) {
+            Connection conn = DBUtil.getConnection(dataBaseType,
+                    jdbcUrl, username, password);
+
+            String readerQuerySql = connConf.getList("queryTablesSql").get(0).toString();
+            if (StringUtils.isEmpty(readerQuerySql)) {
+                throw new RuntimeException("syncTablesJob, the queryTablesSql property must be not null!");
+            }
+
+            String columnName = originalConfig.getList("column").get(0).toString();
+            List<String> queryTables = DBUtil.queryResultColumns(conn, readerQuerySql, columnName, dataBaseType);
+            DBUtil.closeDBResources(null, null, conn);
+            LOG.info("Begin to execute reader.prepare.table:{}. context tables:{}.",
+                    table, queryTables);
+            return queryTables;
         }
 
         public List<Configuration> split(Configuration originalConfig,

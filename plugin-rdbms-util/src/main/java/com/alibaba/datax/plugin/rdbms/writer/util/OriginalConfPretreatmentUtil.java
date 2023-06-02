@@ -102,6 +102,11 @@ public final class OriginalConfPretreatmentUtil {
             if (isPreCheck){
                 allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttionWithoutRetry(), oneTable, connectionFactory.getConnectionInfo());
             }else{
+                if ("*".equals(oneTable)) {
+                    LOG.info("table is queryAll,break;");
+                    return;
+                }
+                //todo allColumns为空了，需确认是否影响同步
                 allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
             }
 

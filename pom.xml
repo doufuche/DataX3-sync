@@ -86,6 +86,7 @@
         <module>drdswriter</module>
         <module>databendwriter</module>
         <module>oraclewriter</module>
+<!--        <module>oracleDevNullWriter</module>-->
         <module>sqlserverwriter</module>
         <module>postgresqlwriter</module>
         <module>kingbaseeswriter</module>

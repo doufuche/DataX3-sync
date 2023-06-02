@@ -40,6 +40,11 @@ public class OracleReader extends Reader {
 			dealHint(this.originalConfig);
 		}
 
+		@Override
+		public void prepare() {
+			this.commonRdbmsReaderJob.prepare(this.originalConfig, DATABASE_TYPE);
+		}
+
         @Override
         public void preCheck(){
             init();
