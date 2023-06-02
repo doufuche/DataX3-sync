@@ -147,13 +147,12 @@ public class CommonRdbmsWriter {
                 originalConfig.set(Key.JDBC_URL, jdbcUrl);
 
                 String table = connConf.getList(Key.TABLE, String.class).get(0);
+                originalConfig.set(Key.TABLE, table);
                 //判断table为"*"时，执行queryTablesSql，并将结果赋值给table
-                if("*".equals(table)) {
-                    List<String> queryTables = queryTables(originalConfig, username, password, connConf, jdbcUrl, table);
-                    originalConfig.set(Key.TABLE, queryTables);
-                }else {
-                    originalConfig.set(Key.TABLE, table);
-                }
+//                if("*".equals(table)) {
+//                    List<String> queryTables = queryTables(originalConfig, username, password, connConf, jdbcUrl, table);
+//                    originalConfig.set(Key.TABLE, queryTables);
+//                }
                 List<String> preSqls = originalConfig.getList(Key.PRE_SQL,
                         String.class);
                 List<String> renderedPreSqls = WriterUtil.renderPreOrPostSqls(

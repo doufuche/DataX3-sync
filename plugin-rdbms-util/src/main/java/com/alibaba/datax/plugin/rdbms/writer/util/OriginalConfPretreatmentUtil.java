@@ -102,11 +102,11 @@ public final class OriginalConfPretreatmentUtil {
             if (isPreCheck){
                 allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttionWithoutRetry(), oneTable, connectionFactory.getConnectionInfo());
             }else{
-                if ("*".equals(oneTable)) {
-                    LOG.info("table is queryAll,break;");
-                    return;
-                }
-                //todo allColumns为空了，需确认是否影响同步
+//                if ("*".equals(oneTable)) {
+//                    LOG.info("table is queryAll,break;");
+//                    return;
+//                }
+                //allColumns为空了，确认影响同步，因为datax底层结构目前只支持一个job配置一个表
                 allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
             }
 

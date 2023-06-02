@@ -91,7 +91,7 @@ public class CommonRdbmsReader {
         }
 
         public void prepare(Configuration originalConfig, DataBaseType DATABASE_TYPE) {
-            int tableNumber = originalConfig.getInt(com.alibaba.datax.plugin.rdbms.reader.Constant.TABLE_NUMBER_MARK);
+            /*int tableNumber = originalConfig.getInt(com.alibaba.datax.plugin.rdbms.reader.Constant.TABLE_NUMBER_MARK);
             if (tableNumber == 1) {
                 String username = originalConfig.getString(com.alibaba.datax.plugin.rdbms.reader.Key.USERNAME);
                 String password = originalConfig.getString(com.alibaba.datax.plugin.rdbms.reader.Key.PASSWORD);
@@ -114,7 +114,7 @@ public class CommonRdbmsReader {
             }
 
             LOG.debug("After job prepare(), originalConfig now is:[\n{}\n]",
-                    originalConfig.toJSON());
+                    originalConfig.toJSON());*/
         }
 
         private static List<String> queryTables(Configuration originalConfig, DataBaseType DATABASE_TYPE, String username, String password, Configuration connConf, String jdbcUrl, String table) {
