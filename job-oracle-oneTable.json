@@ -1,0 +1,65 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "byte": 1048576
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "oraclereader",
+          "parameter": {
+            "username": "gRRSptcacgDl5vy/rbLYVg==",
+            "password": "XCYVpFosvZBBWobFzmLWvA==",
+            "column": ["*"],
+            "splitPk": "",
+            "connection": [
+              {
+                "table": [
+                  "SANJIA_TEMPLATE.ZJ_ZRY_DETAIL"
+                ],
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "oraclewriter",
+          "parameter": {
+            "username": "QqbpS4qrt3roGoO/YmJC0Z34x7ap/w+qnr+GgjLQm7A=",
+            "password": "XCYVpFosvZBBWobFzmLWvA==",
+	    "writerThreadCount":4,
+            "column": ["*"],
+	    "autoCreateTable": "true",
+            "connection": [
+              {
+                "table": [
+                  "SANJIA_TEMPLATE_1.ZJ_ZRY_DETAIL"
+                ],
+                "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}
