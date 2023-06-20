@@ -48,6 +48,13 @@ public class CommonRdbmsWriter {
                     originalConfig.toJSON());
         }
 
+        public void init(Configuration originalConfig, Configuration readerConfig) {
+            OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType, readerConfig);
+
+            LOG.info("After job.readerConfig init(), originalConfig now is:[\n{}\n]",
+                    originalConfig.toJSON());
+        }
+
         /*目前只支持MySQL Writer跟Oracle Writer;检查PreSQL跟PostSQL语法以及insert，delete权限*/
         public void writerPreCheck(Configuration originalConfig, DataBaseType dataBaseType) {
             /*检查PreSql跟PostSql语句*/
@@ -188,14 +195,14 @@ public class CommonRdbmsWriter {
 
         private List<String> getRenderedPreSqls(Configuration readerConfig, List<String> renderedPreSqls) {
             List<String> queryResult;
-            JSONObject readerConfigJS = ((JSONObject) readerConfig.getInternal());
-            JSONObject readerJdbcJS = ((JSONObject)readerConfigJS.getJSONArray("connection").get(0));
-            String readerQuerySql = readerJdbcJS.getJSONArray("querySql").get(0).toString();
-            String readerJdbc = readerJdbcJS.getJSONArray("jdbcUrl").get(0).toString();
-            String columnName = readerConfigJS.getJSONArray("column").get(0).toString();
+            JSONObject readerConfigJs = ((JSONObject) readerConfig.getInternal());
+            JSONObject readerJdbcJs = ((JSONObject)readerConfigJs.getJSONArray("connection").get(0));
+            String readerQuerySql = readerJdbcJs.getJSONArray("querySql").get(0).toString();
+            String readerJdbc = readerJdbcJs.getJSONArray("jdbcUrl").get(0).toString();
+            String columnName = readerConfigJs.getJSONArray("column").get(0).toString();
 
             Connection conn = DBUtil.getConnection(dataBaseType,
-                    readerJdbc, readerConfigJS.getString("username"), readerConfigJS.getString("password"));
+                    readerJdbc, readerConfigJs.getString("username"), readerConfigJs.getString("password"));
             LOG.info("Begin to execute reader.querySql:{}. context info:{}.",
                     readerQuerySql, readerJdbc);
 
@@ -204,7 +211,7 @@ public class CommonRdbmsWriter {
 
             if (queryResult!=null && queryResult.size()>0) {
                 // 将reader库中的schema名称字符串去掉
-                String ss = "\""+readerConfigJS.getString("username")+"\".";
+                String ss = "\""+readerConfigJs.getString("username")+"\".";
                 List<String> convertPreSqlList = new ArrayList<>();
                 for(String temp : queryResult){
                     String replaceStr = temp.replaceAll(ss, "");

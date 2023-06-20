@@ -26,7 +26,7 @@ public class OracleWriter extends Writer {
         @Override
 		public void init() {
 			this.originalConfig = super.getPluginJobConf();
-
+			Configuration readerJobConf = super.getPeerPluginJobConf();
 			// warn：not like mysql, oracle only support insert mode, don't use
 			String writeMode = this.originalConfig.getString(Key.WRITE_MODE);
 			if (null != writeMode) {
@@ -40,7 +40,7 @@ public class OracleWriter extends Writer {
 
 			this.commonRdbmsWriterJob = new CommonRdbmsWriter.Job(
 					DATABASE_TYPE);
-			this.commonRdbmsWriterJob.init(this.originalConfig);
+			this.commonRdbmsWriterJob.init(this.originalConfig, readerJobConf);
 		}
 
 		@Override

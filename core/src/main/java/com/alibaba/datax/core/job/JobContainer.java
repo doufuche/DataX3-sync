@@ -299,7 +299,7 @@ public class JobContainer extends AbstractContainer {
 
         JobPluginCollector jobPluginCollector = new DefaultJobPluginCollector(
                 this.getContainerCommunicator());
-        //必须先Reader ，后Writer;   //todo 根据reader查询出querySql，((JSONObject) ((OracleReader.Job) this.jobReader).originalConfig.root).getJSONArray("connection").get(0).getJSONArray("querySql").get(0)
+        //必须先Reader ，后Writer;   //根据reader查询出querySql，((JSONObject) ((OracleReader.Job) this.jobReader).originalConfig.root).getJSONArray("connection").get(0).getJSONArray("querySql").get(0)
         this.jobReader = this.initJobReader(jobPluginCollector);
         this.jobWriter = this.initJobWriter(jobPluginCollector);
     }

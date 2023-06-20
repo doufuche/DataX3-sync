@@ -6,6 +6,7 @@ import com.alibaba.datax.common.util.ListUtil;
 import com.alibaba.datax.plugin.rdbms.util.*;
 import com.alibaba.datax.plugin.rdbms.writer.Constant;
 import com.alibaba.datax.plugin.rdbms.writer.Key;
+import com.alibaba.fastjson2.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,21 @@ public final class OriginalConfPretreatmentUtil {
 
         simplifyConf(originalConfig);
 
-        dealColumnConf(originalConfig);
+        dealColumnConf(originalConfig, null);
+        dealWriteMode(originalConfig, dataBaseType);
+    }
+
+
+    public static void doPretreatment(Configuration originalConfig, DataBaseType dataBaseType, Configuration readerConfig) {
+        // 检查 username/password 配置（必填）
+        originalConfig.getNecessaryValue(Key.USERNAME, DBUtilErrorCode.REQUIRED_VALUE);
+        originalConfig.getNecessaryValue(Key.PASSWORD, DBUtilErrorCode.REQUIRED_VALUE);
+
+        doCheckBatchSize(originalConfig);
+
+        simplifyConf(originalConfig);
+
+        dealColumnConf(originalConfig, readerConfig);
         dealWriteMode(originalConfig, dataBaseType);
     }
 
@@ -91,7 +106,7 @@ public final class OriginalConfPretreatmentUtil {
         originalConfig.set(Constant.TABLE_NUMBER_MARK, tableNum);
     }
 
-    public static void dealColumnConf(Configuration originalConfig, ConnectionFactory connectionFactory, String oneTable) {
+    public static void dealColumnConf(Configuration originalConfig, ConnectionFactory connectionFactory, String oneTable, Configuration readerConfig) {
         List<String> userConfiguredColumns = originalConfig.getList(Key.COLUMN, String.class);
         if (null == userConfiguredColumns || userConfiguredColumns.isEmpty()) {
             throw DataXException.asDataXException(DBUtilErrorCode.ILLEGAL_VALUE,
@@ -107,7 +122,21 @@ public final class OriginalConfPretreatmentUtil {
 //                    return;
 //                }
                 //allColumns为空了，确认影响同步，因为datax底层结构目前只支持一个job配置一个表
-                allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
+                //使用readerConfig执行 获取allColumns
+                if(readerConfig != null) {
+                    JSONObject readerConfigJs = ((JSONObject) readerConfig.getInternal());
+                    JSONObject readerJdbcJs = ((JSONObject) readerConfigJs.getJSONArray("connection").get(0));
+                    String readerJdbc = readerJdbcJs.getJSONArray("jdbcUrl").get(0).toString();
+                    String readerUsername = readerConfigJs.getString("username");
+                    String readerPassword = readerConfigJs.getString("password");
+                    ConnectionFactory readerConnectionFactory = new JdbcConnectionFactory(DATABASE_TYPE, readerJdbc, readerUsername, readerPassword);
+                    //oneTable处理替换userName为reader
+                    String writerUserName = originalConfig.getString(Key.USERNAME, "");
+                    oneTable = oneTable.replace(writerUserName+".", readerUsername+".");
+                    allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, readerConnectionFactory.getConnecttion(), oneTable, readerConnectionFactory.getConnectionInfo());
+                }else{
+                    allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
+                }
             }
 
             LOG.info("table:[{}] all columns:[\n{}\n].", oneTable,
@@ -132,7 +161,7 @@ public final class OriginalConfPretreatmentUtil {
         }
     }
 
-    public static void dealColumnConf(Configuration originalConfig) {
+    public static void dealColumnConf(Configuration originalConfig, Configuration readerConfig) {
         String jdbcUrl = originalConfig.getString(String.format("%s[0].%s",
                 Constant.CONN_MARK, Key.JDBC_URL));
 
@@ -142,7 +171,7 @@ public final class OriginalConfPretreatmentUtil {
                 "%s[0].%s[0]", Constant.CONN_MARK, Key.TABLE));
 
         JdbcConnectionFactory jdbcConnectionFactory = new JdbcConnectionFactory(DATABASE_TYPE, jdbcUrl, username, password);
-        dealColumnConf(originalConfig, jdbcConnectionFactory, oneTable);
+        dealColumnConf(originalConfig, jdbcConnectionFactory, oneTable, readerConfig);
     }
 
     public static void dealWriteMode(Configuration originalConfig, DataBaseType dataBaseType) {

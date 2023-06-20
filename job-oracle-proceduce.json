@@ -8,26 +8,10 @@
           "byte": 1048576,
           "record": 0
         }
-      },
-      "job": {
-        "tracker": {
-            "type": "jobtracker",
-            "host": "127.0.0.1",
-            "port": 8083
-        }
       }
-    },
-    "debug": {
-      "enabled": true,
-      "address": "localhost:10001"  
     }
   },
   "job": {
-    "tracker": {
-      "type": "jobtracker",
-      "host": "127.0.0.1",
-      "port": 8083
-    },
     "setting": {
       "speed": {
         "channel": 3,
