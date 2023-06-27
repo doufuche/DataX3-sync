@@ -117,6 +117,7 @@ public final class OriginalConfPretreatmentUtil {
             if (isPreCheck){
                 allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE,connectionFactory.getConnecttionWithoutRetry(), oneTable, connectionFactory.getConnectionInfo());
             }else{
+                allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
 //                if ("*".equals(oneTable)) {
 //                    LOG.info("table is queryAll,break;");
 //                    return;
@@ -126,16 +127,17 @@ public final class OriginalConfPretreatmentUtil {
                 if(readerConfig != null) {
                     JSONObject readerConfigJs = ((JSONObject) readerConfig.getInternal());
                     JSONObject readerJdbcJs = ((JSONObject) readerConfigJs.getJSONArray("connection").get(0));
-                    String readerJdbc = readerJdbcJs.getJSONArray("jdbcUrl").get(0).toString();
-                    String readerUsername = readerConfigJs.getString("username");
-                    String readerPassword = readerConfigJs.getString("password");
-                    ConnectionFactory readerConnectionFactory = new JdbcConnectionFactory(DATABASE_TYPE, readerJdbc, readerUsername, readerPassword);
-                    //oneTable处理替换userName为reader
-                    String writerUserName = originalConfig.getString(Key.USERNAME, "");
-                    oneTable = oneTable.replace(writerUserName+".", readerUsername+".");
-                    allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, readerConnectionFactory.getConnecttion(), oneTable, readerConnectionFactory.getConnectionInfo());
-                }else{
-                    allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
+                    List<String> querySqls = readerJdbcJs.getList(com.alibaba.datax.plugin.rdbms.reader.Key.QUERY_SQL, String.class);
+                    if(querySqls==null || querySqls.size()==0) {
+                        String readerJdbc = readerJdbcJs.getJSONArray("jdbcUrl").get(0).toString();
+                        String readerUsername = readerConfigJs.getString("username");
+                        String readerPassword = readerConfigJs.getString("password");
+                        ConnectionFactory readerConnectionFactory = new JdbcConnectionFactory(DATABASE_TYPE, readerJdbc, readerUsername, readerPassword);
+                        //oneTable处理替换userName为reader
+                        String writerUserName = originalConfig.getString(Key.USERNAME, "");
+                        oneTable = oneTable.replace(writerUserName + ".", readerUsername + ".");
+                        allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, readerConnectionFactory.getConnecttion(), oneTable, readerConnectionFactory.getConnectionInfo());
+                    }
                 }
             }
 
