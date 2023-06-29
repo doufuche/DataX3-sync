@@ -49,8 +49,15 @@ public class CommonRdbmsWriter {
         }
 
         public void init(Configuration originalConfig, Configuration readerConfig) {
-            OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType, readerConfig);
-
+//            OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType, readerConfig);
+            try {
+                OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType);
+            }catch(DataXException ex){
+                LOG.info("ex.message:{}", ex.getMessage());
+                if(ex.getMessage().contains("ORA-00942")){
+                    OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType, readerConfig);
+                }
+            }
             LOG.info("After job.readerConfig init(), originalConfig now is:[\n{}\n]",
                     originalConfig.toJSON());
         }

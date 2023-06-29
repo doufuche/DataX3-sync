@@ -1,0 +1,62 @@
+{
+    "core": {
+      "transport": {
+        "channel": {
+          "speed": {
+            "byte": 1048576,
+            "record": 0
+          }
+        }
+      }
+    },
+    "job": {
+      "setting": {
+        "speed": {
+          "channel": 3,
+          "byte": 1048576
+        },
+        "errorLimit": {
+          "record": 10000,
+          "percentage": 0.52
+        }
+      },
+      "content": [
+        {
+          "reader": {
+            "name": "oraclereader",
+            "parameter": {
+              "username": "SANJIA_TEMPLATE",
+              "password": "123456",
+              "splitPk": "",
+              "connection": [
+                {
+                  "querySql": ["select ID as OID,CREATE_DATE as DATE_TIME from SANJIA_TEMPLATE.TEST_CRUD"],
+                  "jdbcUrl": [
+                    "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                  ]
+                }
+              ]
+            }
+          },
+          "writer": {
+            "name": "oraclewriter",
+            "parameter": {
+              "username": "SANJIA_TEMPLATE_1",
+              "password": "123456",
+          "writerThreadCount":4,
+              "column": ["OID","DATE_TIME"],
+          "autoCreateTable": "true",
+              "connection": [
+                {
+                  "table": [
+                    "SANJIA_TEMPLATE_1.TEST_ORDER"
+                  ],
+                  "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
