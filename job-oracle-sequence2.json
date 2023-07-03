@@ -1,0 +1,74 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "memory": true,
+        "speed": {
+          "byte": 2097152,
+          "record": 0
+        },
+        "capacity": 1048576
+      }
+    }
+  },
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "username": "SHOW_ORACLE",
+            "password": "123456",
+            "column": [
+              "CONTENT"
+            ],
+            "connection": [
+              {
+                "querySql": [
+                  "SELECT DBMS_METADATA.GET_DDL('SEQUENCE', sequence_name) as CONTENT FROM user_sequences"
+                ],
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                ]
+              }
+            ]
+          },
+          "name": "oraclereader"
+        },
+        "writer": {
+          "parameter": {
+            "postSql": [
+              "TRUNCATE TABLE LOG_DATAX"
+            ],
+            "username": "SANJIA_TEMPLATE_1",
+            "password": "123456",
+            "column": [
+              "CONTENT"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL",
+                "table": [
+                  "LOG_DATAX"
+                ]
+              }
+            ],
+            "preSql": [
+              "${querySql}"
+            ]
+          },
+          "name": "oraclewriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 10000,
+        "percentage": 0.52
+      },
+      "speed": {
+        "byte": 2097152,
+        "channel": 3
+      }
+    }
+  }
+}

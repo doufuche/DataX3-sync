@@ -1,0 +1,71 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "memory": true,
+        "capacity": 1048576,
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "byte": 1048576
+      },
+      "errorLimit": {
+        "record": 10000,
+        "percentage": 0.52
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "oraclereader",
+          "parameter": {
+            "username": "SHOW_ORACLE",
+            "password": "123456",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                ],
+                "querySql": [
+                  "SELECT * from DISTRICT_ITEM where 1=2"
+                ]
+              }
+            ],
+            "column": [
+              "*"
+            ]
+          }
+        },
+        "writer": {
+          "name": "oraclewriter",
+          "parameter": {
+            "username": "SANJIA_TEMPLATE_1",
+            "password": "123456",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL",
+                "table": [
+                  "DISTRICT_ITEM"
+                ]
+              }
+            ],
+            "column": [
+              "*"
+            ],
+            "preSql": [
+              "CREATE TABLE \"SANJIA_TEMPLATE_1\".\"LOG_DATAX\" \n   (\t\"CONTENT\" BLOB\n   ) SEGMENT CREATION IMMEDIATE \n  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 \n NOCOMPRESS LOGGING\n  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645\n  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1\n  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)\n  \n LOB (\"CONTENT\") STORE AS BASICFILE (\n  ENABLE STORAGE IN ROW CHUNK 8192 RETENTION \n  NOCACHE LOGGING \n  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645\n  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1\n  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)) "
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

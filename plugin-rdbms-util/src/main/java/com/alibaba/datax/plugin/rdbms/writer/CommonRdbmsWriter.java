@@ -181,6 +181,9 @@ public class CommonRdbmsWriter {
                     List<String> queryResult = null;
                     if (renderedPreSqls.contains("${querySql}")) {
                         renderedPreSqls = getRenderedPreSqls(readerConfig, renderedPreSqls);
+                        if(renderedPreSqls.size()==0){
+                            return;
+                        }
                     }
 
                     // 说明有 preSql 配置，则此处删除掉
@@ -216,17 +219,18 @@ public class CommonRdbmsWriter {
             queryResult = DBUtil.queryResultColumns(conn, readerQuerySql, columnName, dataBaseType);
             DBUtil.closeDBResources(null, null, conn);
 
-            if (queryResult!=null && queryResult.size()>0) {
-                // 将reader库中的schema名称字符串去掉
-                String ss = "\""+readerConfigJs.getString("username")+"\".";
-                List<String> convertPreSqlList = new ArrayList<>();
-                for(String temp : queryResult){
-                    String replaceStr = temp.replaceAll(ss, "");
-                    convertPreSqlList.add(replaceStr);
-                }
-                renderedPreSqls = convertPreSqlList;
+            if(queryResult==null || queryResult.size()==0){
+                LOG.info("dll查询原始库没有，如没有sequence，忽略");
+                return queryResult;
             }
-            return renderedPreSqls;
+            // 将reader库中的schema名称字符串去掉
+            String ss = "\""+readerConfigJs.getString("username")+"\".";
+            List<String> convertPreSqlList = new ArrayList<>();
+            for(String temp : queryResult){
+                String replaceStr = temp.replaceAll(ss, "");
+                convertPreSqlList.add(replaceStr);
+            }
+            return convertPreSqlList;
         }
 
         private List<String> queryTables(Configuration originalConfig, String username, String password, Configuration connConf, String jdbcUrl, String table) {
