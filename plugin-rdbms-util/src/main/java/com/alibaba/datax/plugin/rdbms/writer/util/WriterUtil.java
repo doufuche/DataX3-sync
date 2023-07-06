@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
@@ -95,13 +96,21 @@ public final class WriterUtil {
     public static void executeSqls(Connection conn, List<String> sqls, String basicMessage,DataBaseType dataBaseType) {
         Statement stmt = null;
         String currentSql = null;
-        try {
+        try{
             stmt = conn.createStatement();
             for (String sql : sqls) {
-                currentSql = sql;
-                DBUtil.executeSqlWithoutResultSet(stmt, sql);
+                try {
+                    currentSql = sql;
+                    DBUtil.executeSqlWithoutResultSet(stmt, sql);
+                } catch (Exception e) {
+                    if(e.getMessage().contains("ORA-00942") && sql.toUpperCase().contains("DROP TABLE")){
+                        LOG.info("删除表时，表不存在的错误忽略。");
+                    }else{
+                        throw RdbmsException.asQueryException(dataBaseType,e,currentSql,null,null);
+                    }
+                }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw RdbmsException.asQueryException(dataBaseType,e,currentSql,null,null);
         } finally {
             DBUtil.closeDBResources(null, stmt, null);

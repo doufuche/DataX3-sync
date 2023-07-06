@@ -16,7 +16,6 @@
       {
         "reader": {
           "parameter": {
-            "username": "SHOW_ORACLE",
             "password": "123456",
             "column": [
               "CONTENT"
@@ -30,7 +29,8 @@
                   "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
                 ]
               }
-            ]
+            ],
+            "username": "SANJIA_TEMPLATE"
           },
           "name": "oraclereader"
         },
@@ -39,10 +39,9 @@
             "postSql": [
               "TRUNCATE TABLE LOG_DATAX"
             ],
-            "username": "SANJIA_TEMPLATE_1",
             "password": "123456",
             "column": [
-              "CONTENT"
+              "*"
             ],
             "connection": [
               {
@@ -52,7 +51,9 @@
                 ]
               }
             ],
+            "username": "SANJIA_TEMPLATE_1",
             "preSql": [
+              "BEGIN\n  FOR seq IN (SELECT sequence_name FROM user_sequences) LOOP\n    EXECUTE IMMEDIATE 'DROP SEQUENCE ' || seq.sequence_name;\n  END LOOP;\nEND;",
               "${querySql}"
             ]
           },

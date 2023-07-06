@@ -179,7 +179,7 @@ public class CommonRdbmsWriter {
                     //目前该规则只支持同类型数据库同步
                     //判断renderedPreSqls包含${querySql}时，从renderConfig中获取querySql并执行，获取结果返回赋值给该${querySql}
                     List<String> queryResult = null;
-                    if (renderedPreSqls.contains("${querySql}")) {
+                    if (renderedPreSqls.contains("${querySql}")) {  //todo 这里如果是创建LOG_DTAX的sql，querySql是为了查询不报错定义的，columns查询为空
                         renderedPreSqls = getRenderedPreSqls(readerConfig, renderedPreSqls);
                         if(renderedPreSqls.size()==0){
                             return;
@@ -229,6 +229,11 @@ public class CommonRdbmsWriter {
             for(String temp : queryResult){
                 String replaceStr = temp.replaceAll(ss, "");
                 convertPreSqlList.add(replaceStr);
+            }
+            renderedPreSqls.remove("${querySql}");
+            for(int i=0; i<renderedPreSqls.size(); i++){
+                String tmp = renderedPreSqls.get(i);
+                convertPreSqlList.add(i, tmp);
             }
             return convertPreSqlList;
         }

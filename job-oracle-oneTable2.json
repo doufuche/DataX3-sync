@@ -1,0 +1,73 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "speed": {
+          "byte": 2097152,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "123456",
+            "column": [
+              "*"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL"
+                ],
+                "table": [
+                  "SANJIA_TEMPLATE.samp500_yb_ylfyjs"
+                ]
+              }
+            ],
+            "splitPk": "",
+            "username": "SANJIA_TEMPLATE"
+          },
+          "name": "oraclereader"
+        },
+        "writer": {
+          "parameter": {
+            "password": "123456",
+            "autoCreateTable": "true",
+            "column": [
+              "*"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:oracle:thin:@//172.16.1.27:1521/ORCL",
+                "table": [
+                  "SANJIA_TEMPLATE_1.samp500_yb_ylfyjs"
+                ]
+              }
+            ],
+            "writerThreadCount": 4,
+            "username": "SANJIA_TEMPLATE_1",
+            "preSql": [
+              "DROP TABLE samp500_yb_ylfyjs CASCADE CONSTRAINTS",
+              "  CREATE TABLE \"SANJIA_TEMPLATE_1\".\"samp500_yb_ylfyjs\"    (\"sfz_bm\" VARCHAR2(255), \"aaa027\" VARCHAR2(255), \"aab001\" VARCHAR2(255), \"aab019\" VARCHAR2(255), \"aab020\" VARCHAR2(255), \"aab999\" VARCHAR2(255), \"aac001\" VARCHAR2(255), \"aac003\" VARCHAR2(255), \"aac999\" VARCHAR2(255), \"aae001\" VARCHAR2(255), \"aae017\" VARCHAR2(255), \"aae032\" VARCHAR2(255), \"aae072\" VARCHAR2(255), \"aae100\" VARCHAR2(255), \"aae117\" VARCHAR2(255), \"aae140\" VARCHAR2(255), \"aaz208\" VARCHAR2(255), \"aaz218\" VARCHAR2(255), \"aka101\" VARCHAR2(255), \"aka129\" VARCHAR2(255), \"aka130\" VARCHAR2(255), \"akb020\" VARCHAR2(255), \"akc021\" VARCHAR2(255), \"akc087\" VARCHAR2(255), \"akc190\" VARCHAR2(255), \"akc266\" VARCHAR2(255), \"akc267\" VARCHAR2(255), \"ake010\" VARCHAR2(255), \"baa084\" VARCHAR2(255), \"baz741\" VARCHAR2(255), \"bka135\" VARCHAR2(255), \"bkc021\" VARCHAR2(255), \"bkc075\" VARCHAR2(255), \"bkc076\" VARCHAR2(255), \"bkc093\" VARCHAR2(255), \"bke172\" VARCHAR2(255), \"bkc197\" VARCHAR2(255), \"bke173\" VARCHAR2(255), \"bke191\" VARCHAR2(255), \"bke167\" VARCHAR2(255), \"bke168\" VARCHAR2(255), \"bke164\" VARCHAR2(255), \"bke165\" VARCHAR2(255), \"bke182\" VARCHAR2(255), \"bkc376\" VARCHAR2(255), \"bke192\" VARCHAR2(255), \"bkc378\" VARCHAR2(255), \"bkc379\" VARCHAR2(255), \"bkc380\" VARCHAR2(255), \"bkc381\" VARCHAR2(255), \"bkc073\" VARCHAR2(255), \"aae076\" VARCHAR2(255), \"bke001\" VARCHAR2(255), \"bae074\" VARCHAR2(255), \"bkc092\" VARCHAR2(255), \"bke183\" VARCHAR2(255), \"bkc200\" VARCHAR2(255), \"bkc401\" VARCHAR2(255), \"bke190\" VARCHAR2(255), \"bke194\" VARCHAR2(255), \"bkc091\" VARCHAR2(255), \"bke188\" VARCHAR2(255), \"bkc377\" VARCHAR2(255), \"bke178\" VARCHAR2(255), \"bke179\" VARCHAR2(255)   ) SEGMENT CREATION IMMEDIATE   PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255  NOCOMPRESS LOGGING  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)   "
+            ]
+          },
+          "name": "oraclewriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 10000,
+        "percentage": 0.52
+      },
+      "speed": {
+        "byte": 2097152,
+        "channel": 3
+      }
+    }
+  }
+}

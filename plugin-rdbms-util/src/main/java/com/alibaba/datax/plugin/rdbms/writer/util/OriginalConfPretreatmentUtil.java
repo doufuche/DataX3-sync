@@ -136,6 +136,8 @@ public final class OriginalConfPretreatmentUtil {
                         String writerUserName = originalConfig.getString(Key.USERNAME, "");
                         oneTable = oneTable.replace(writerUserName + ".", readerUsername + ".");
                         allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, readerConnectionFactory.getConnecttion(), oneTable, readerConnectionFactory.getConnectionInfo());
+                    }else{
+                        allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
                     }
                 } else {
                     allColumns = DBUtil.getTableColumnsByConn(DATABASE_TYPE, connectionFactory.getConnecttion(), oneTable, connectionFactory.getConnectionInfo());
