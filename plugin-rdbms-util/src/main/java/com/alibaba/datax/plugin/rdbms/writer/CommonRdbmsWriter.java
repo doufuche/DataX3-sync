@@ -383,7 +383,11 @@ public class CommonRdbmsWriter {
                         StringUtils.join(this.preSqls, ";"), BASIC_MESSAGE);
                 WriterUtil.executeSqls(connection, this.preSqls, BASIC_MESSAGE, dataBaseType);
             }
-
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             DBUtil.closeDBResources(null, null, connection);
         }
 

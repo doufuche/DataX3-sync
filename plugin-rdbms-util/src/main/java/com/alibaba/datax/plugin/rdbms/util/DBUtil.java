@@ -576,10 +576,10 @@ public final class DBUtil {
         Triple<List<String>, List<Integer>, List<String>> columnMetaData = new ImmutableTriple<List<String>, List<Integer>, List<String>>(
                 new ArrayList<String>(), new ArrayList<Integer>(),
                 new ArrayList<String>());
+        String queryColumnSql = "select " + column + " from " + tableName
+                + " where 1=2";
         try {
             statement = conn.createStatement();
-            String queryColumnSql = "select " + column + " from " + tableName
-                    + " where 1=2";
 
             rs = statement.executeQuery(queryColumnSql);
             ResultSetMetaData rsMetaData = rs.getMetaData();
@@ -595,7 +595,7 @@ public final class DBUtil {
         } catch (SQLException e) {
             throw DataXException
                     .asDataXException(DBUtilErrorCode.GET_COLUMN_INFO_FAILED,
-                            String.format("获取表:%s 的字段的元信息时失败. 请联系 DBA 核查该库、表信息.", tableName), e);
+                            String.format("获取表:%s 的字段的元信息时失败. 请联系 DBA 核查该库、表信息.querySql:%s", tableName, queryColumnSql), e);
         } finally {
             DBUtil.closeDBResources(rs, statement, null);
         }
