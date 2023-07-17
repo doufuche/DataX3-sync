@@ -224,7 +224,7 @@ public class CommonRdbmsWriter {
                 return queryResult;
             }
             // 将reader库中的schema名称字符串去掉
-            String ss = "\""+readerConfigJs.getString("username")+"\".";
+            String ss = "\""+readerConfigJs.getString("username").toUpperCase()+"\".";
             List<String> convertPreSqlList = new ArrayList<>();
             for(String temp : queryResult){
                 String replaceStr = temp.replaceAll(ss, "");
