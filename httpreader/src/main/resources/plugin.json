@@ -1,0 +1,6 @@
+{
+  "name": "httpreader",
+  "class": "com.alibaba.datax.plugin.reader.httpreader.HttpReader",
+  "description": "RESTful API Reader",
+  "developer": "datax"
+}
