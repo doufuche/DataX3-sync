@@ -47,6 +47,7 @@
         <module>transformer</module>
 
         <!-- reader -->
+        <module>httpreader</module>
         <module>mysqlreader</module>
         <module>drdsreader</module>
         <module>sqlserverreader</module>
@@ -128,7 +129,7 @@
         <!-- common support module -->
         <module>plugin-rdbms-util</module>
         <module>plugin-unstructured-storage-util</module>
-       
+
     </modules>
 
     <dependencyManagement>

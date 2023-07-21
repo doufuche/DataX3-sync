@@ -1,0 +1,40 @@
+{
+  "job": {
+    "setting": {
+      "speed": {
+        "channel":1
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "httpreader",
+          "parameter": {
+            "connection": [
+              {
+                "url": "https://dummy.restapiexample.com/api/v1/employees"
+              }
+            ],
+            "method": "get",
+            "column": [
+              "*"
+            ]
+          }
+        },
+        "writer": {
+          "name": "txtfilewriter",
+          "parameter": {
+            "path": "./output",
+            "fileName": "httpFile.txt",
+            "writeMode": "truncate",
+            "dateFormat": "yyyy-MM-dd"
+          }
+        }
+      }
+    ]
+  }
+}
