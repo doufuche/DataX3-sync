@@ -27,11 +27,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CommonRdbmsWriter {
 
     public static class Job {
         private DataBaseType dataBaseType;
+        // 正则表达式匹配数据库名称部分
+        private static Pattern urlPattern = Pattern.compile("jdbc:(mysql|oracle|sqlserver)://.*?/(.*?)\\?");
 
         private static final Logger LOG = LoggerFactory
                 .getLogger(Job.class);
@@ -225,10 +229,15 @@ public class CommonRdbmsWriter {
             }
             // 将reader库中的schema名称字符串去掉
             String ss = "\""+readerConfigJs.getString("username").toUpperCase()+"\".";
+            // 将reader库中的database名称字符串去掉
+            String ss2 = "`"+extractDatabaseName(readerJdbc)+"`.";
+            String ss3 = extractDatabaseName(readerJdbc)+".";
             List<String> convertPreSqlList = new ArrayList<>();
             for(String temp : queryResult){
                 String replaceStr = temp.replaceAll(ss, "");
-                convertPreSqlList.add(replaceStr);
+                String replaceStr2 = replaceStr.replaceAll(ss2, "");
+                String replaceStr3 = replaceStr2.replaceAll(ss3, "");
+                convertPreSqlList.add(replaceStr3);
             }
             renderedPreSqls.remove("${querySql}");
             for(int i=0; i<renderedPreSqls.size(); i++){
@@ -236,6 +245,16 @@ public class CommonRdbmsWriter {
                 convertPreSqlList.add(i, tmp);
             }
             return convertPreSqlList;
+        }
+
+        public static String extractDatabaseName(String jdbcUrl) {
+            Matcher matcher = urlPattern.matcher(jdbcUrl);
+
+            if (matcher.find()) {
+                return matcher.group(2);
+            } else {
+                throw new IllegalArgumentException("未找到数据库名称.");
+            }
         }
 
         private List<String> queryTables(Configuration originalConfig, String username, String password, Configuration connConf, String jdbcUrl, String table) {

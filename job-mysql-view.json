@@ -1,0 +1,65 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "memory": true,
+        "capacity": 1024,
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "byte": 1048576
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "username": "lijie",
+            "password": "112wHC*u",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://223.76.194.32:13001/datax_test?useSSL=false&useUnicode=true&characterEncoding=utf8"
+                ],
+                "querySql": ["SELECT CONCAT('CREATE OR REPLACE VIEW ', TABLE_SCHEMA, '.', TABLE_NAME, ' AS\\n', VIEW_DEFINITION, ';') AS CONTENT FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = DATABASE()"]
+              }
+            ],
+            "column": ["CONTENT"]
+          }
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "parameter": {
+            "username": "lijie",
+            "password": "112wHC*u",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://223.76.194.32:13001/datax_test_to?useSSL=false&useUnicode=true&characterEncoding=utf8",
+                "table": [
+                  "LOG_DATAX"
+                ]
+              }
+            ],
+            "column": ["*"],
+            "preSql": ["${querySql}"],
+            "postSql":["TRUNCATE TABLE LOG_DATAX"]
+          }
+        }
+      }
+    ]
+  }
+}
+

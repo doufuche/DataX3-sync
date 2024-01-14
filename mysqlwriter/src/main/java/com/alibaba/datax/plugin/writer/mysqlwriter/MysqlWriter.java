@@ -38,7 +38,8 @@ public class MysqlWriter extends Writer {
         public void prepare() {
             //实跑先不支持 权限 检验
             //this.commonRdbmsWriterJob.privilegeValid(this.originalConfig, DATABASE_TYPE);
-            this.commonRdbmsWriterJob.prepare(this.originalConfig);
+            Configuration jobConf = super.getPeerPluginJobConf();
+            this.commonRdbmsWriterJob.prepare(this.originalConfig, jobConf);
         }
 
         @Override

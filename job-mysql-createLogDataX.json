@@ -1,0 +1,71 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "memory": true,
+        "capacity": 1048576,
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "setting": {
+      "speed": {
+        "channel": 3,
+        "byte": 1048576
+      },
+      "errorLimit": {
+        "record": 10000,
+        "percentage": 0.52
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "username": "lijie",
+            "password": "112wHC*u",
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://223.76.194.32:13001/datax_test?useSSL=false&useUnicode=true&characterEncoding=utf8"
+                ],
+                "querySql": [
+                  "SELECT * from base_dept where 1=2"
+                ]
+              }
+            ],
+            "column": [
+              "*"
+            ]
+          }
+        },
+        "writer": {
+          "name": "mysqlwriter",
+          "parameter": {
+            "username": "lijie",
+            "password": "112wHC*u",
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://223.76.194.32:13001/datax_test?useSSL=false&useUnicode=true&characterEncoding=utf8",
+                "table": [
+                  "base_dept"
+                ]
+              }
+            ],
+            "column": [
+              "*"
+            ],
+            "preSql": [
+              "CREATE TABLE IF NOT EXISTS LOG_DATAX (CONTENT TEXT   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+              ]
+          }
+        }
+      }
+    ]
+  }
+}

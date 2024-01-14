@@ -1,0 +1,69 @@
+{
+  "core": {
+    "transport": {
+      "channel": {
+        "speed": {
+          "byte": 1048576,
+          "record": 0
+        }
+      }
+    }
+  },
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "parameter": {
+            "password": "112wHC*u",
+            "column": [
+              "*"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://223.76.194.32:13001/datax_test?useSSL=false&useUnicode=true&characterEncoding=utf8"
+                ],
+                "table": [
+                  "base_dept"
+                ]
+              }
+            ],
+            "splitPk": "",
+            "username": "lijie"
+          },
+          "name": "mysqlreader"
+        },
+        "writer": {
+          "parameter": {
+            "password": "112wHC*u",
+            "autoCreateTable": "true",
+            "column": [
+              "*"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": "jdbc:mysql://223.76.194.32:13001/datax_test_to?useSSL=false&useUnicode=true&characterEncoding=utf8",
+                "table": [
+                  "base_dept"
+                ]
+              }
+            ],
+            "writerThreadCount": 4,
+            "username": "lijie"
+          },
+          "name": "mysqlwriter"
+        }
+      }
+    ],
+    "setting": {
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      },
+      "speed": {
+        "byte": 1048576,
+        "channel": 3
+      }
+    }
+  }
+}
