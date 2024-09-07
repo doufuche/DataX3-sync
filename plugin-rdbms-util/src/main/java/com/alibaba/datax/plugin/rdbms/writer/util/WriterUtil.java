@@ -105,6 +105,8 @@ public final class WriterUtil {
                 } catch (Exception e) {
                     if(e.getMessage().contains("ORA-00942") && sql.toUpperCase().contains("DROP TABLE")){
                         LOG.info("删除表时，表不存在的错误忽略。");
+                    }else if(e.getMessage().contains("already exists")){
+                        LOG.info("创建重复的错误忽略。");
                     }else{
                         throw RdbmsException.asQueryException(dataBaseType,e,currentSql,null,null);
                     }
@@ -118,39 +120,37 @@ public final class WriterUtil {
     }
 
     public static String getWriteTemplate(List<String> columnHolders, List<String> valueHolders, String writeMode, DataBaseType dataBaseType, boolean forceUseUpdate) {
-        boolean isWriteModeLegal = writeMode.trim().toLowerCase().startsWith("insert")
-                || writeMode.trim().toLowerCase().startsWith("replace")
-                || writeMode.trim().toLowerCase().startsWith("update");
+        boolean update = writeMode.trim().toLowerCase().startsWith("update");
+        boolean isWriteModeLegal = writeMode.trim().toLowerCase().startsWith("insert") || writeMode.trim().toLowerCase().startsWith("replace") || update;
 
         if (!isWriteModeLegal) {
             throw DataXException.asDataXException(DBUtilErrorCode.ILLEGAL_VALUE,
                     String.format("您所配置的 writeMode:%s 错误. 因为DataX 目前仅支持replace,update 或 insert 方式. 请检查您的配置并作出修改.", writeMode));
         }
+
         // && writeMode.trim().toLowerCase().startsWith("replace")
         String writeDataSqlTemplate;
-        if (forceUseUpdate ||
-                ((dataBaseType == DataBaseType.MySql || dataBaseType == DataBaseType.Tddl) && writeMode.trim().toLowerCase().startsWith("update"))
-                ) {
+        if (forceUseUpdate || ((dataBaseType == DataBaseType.MySql || dataBaseType == DataBaseType.Tddl) && update)) {
             //update只在mysql下使用
-
-            writeDataSqlTemplate = new StringBuilder()
-                    .append("INSERT INTO %s (").append(StringUtils.join(columnHolders, ","))
-                    .append(") VALUES(").append(StringUtils.join(valueHolders, ","))
-                    .append(")")
-                    .append(onDuplicateKeyUpdateString(columnHolders))
-                    .toString();
+            writeDataSqlTemplate = "INSERT INTO %s (" + StringUtils.join(columnHolders, ",") + ") VALUES(" + StringUtils.join(valueHolders, ",") + ")" + onDuplicateKeyUpdateString(columnHolders);
         } else {
+            if (dataBaseType == DataBaseType.Oracle && update) {
+                writeDataSqlTemplate = onMergeIntoDoString(writeMode, columnHolders, valueHolders) + "INSERT (" +
+                        StringUtils.join(columnHolders, ",") +
+                        ") VALUES(" + StringUtils.join(valueHolders, ",") +
+                        ")";
+            } else {
 
-            //这里是保护,如果其他错误的使用了update,需要更换为replace
-            if (writeMode.trim().toLowerCase().startsWith("update")) {
-                writeMode = "replace";
+                //这里是保护,如果其他错误的使用了update,需要更换为replace
+                if (update) {
+                    writeMode = "replace";
+                }
+                writeDataSqlTemplate = writeMode +
+                        " INTO %s (" + StringUtils.join(columnHolders, ",") +
+                        ") VALUES(" + StringUtils.join(valueHolders, ",") +
+                        ")";
             }
-            writeDataSqlTemplate = new StringBuilder().append(writeMode)
-                    .append(" INTO %s (").append(StringUtils.join(columnHolders, ","))
-                    .append(") VALUES(").append(StringUtils.join(valueHolders, ","))
-                    .append(")").toString();
         }
-
         return writeDataSqlTemplate;
     }
 
@@ -223,5 +223,67 @@ public final class WriterUtil {
         }
     }
 
+    /**
+     * 新增更新插入sql语句
+     * @return String
+     */
+    public static String onMergeIntoDoString(String merge, List<String> columnHolders, List<String> valueHolders) {
+        String[] sArray = getStrings(merge);
+        StringBuilder sb = new StringBuilder();
+        sb.append("MERGE INTO %s A USING ( SELECT ");
+
+        boolean first = true;
+        boolean first1 = true;
+        StringBuilder str = new StringBuilder();
+        StringBuilder update = new StringBuilder();
+        for (String columnHolder : columnHolders) {
+            if (Arrays.asList(sArray).contains(columnHolder)) {
+                if (!first) {
+                    sb.append(",");
+                    str.append(" AND ");
+                } else {
+                    first = false;
+                }
+                str.append("TMP.").append(columnHolder);
+                sb.append("?");
+                str.append(" = ");
+                sb.append(" AS ");
+                str.append("A.").append(columnHolder);
+                sb.append(columnHolder);
+            }
+        }
+
+        for (String columnHolder : columnHolders) {
+            if (!Arrays.asList(sArray).contains(columnHolder)) {
+                if (!first1) {
+                    update.append(",");
+                } else {
+                    first1 = false;
+                }
+                update.append(columnHolder);
+                update.append(" = ");
+                update.append("?");
+            }
+        }
+
+        sb.append(" FROM DUAL ) TMP ON (");
+        sb.append(str);
+        sb.append(" ) WHEN MATCHED THEN UPDATE SET ");
+        sb.append(update);
+        sb.append(" WHEN NOT MATCHED THEN ");
+        return sb.toString();
+    }
+
+    /**
+     * 新增获取复合主键集合
+     * @return String[]
+     */
+    public static String[] getStrings(String merge) {
+        merge = merge.replace("update", "");
+        merge = merge.replace("(", "");
+        merge = merge.replace(")", "");
+        merge = merge.replace(" ", "");
+        return merge.split(",");
+    }
 
 }

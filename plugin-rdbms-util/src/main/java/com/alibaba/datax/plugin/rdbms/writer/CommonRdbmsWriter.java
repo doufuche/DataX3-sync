@@ -23,10 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +54,7 @@ public class CommonRdbmsWriter {
             try {
                 OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType);
             }catch(DataXException ex){
-                LOG.info("ex.message:{}", ex.getMessage());
+                LOG.error("ex.message:{}", ex.getMessage());
                 if(ex.getMessage().contains("ORA-00942")){
                     OriginalConfPretreatmentUtil.doPretreatment(originalConfig, this.dataBaseType, readerConfig);
                 }
@@ -412,10 +409,25 @@ public class CommonRdbmsWriter {
 
         public void startWriteWithConnection(RecordReceiver recordReceiver, TaskPluginCollector taskPluginCollector, Connection connection) {
             this.taskPluginCollector = taskPluginCollector;
+            List<String> columns = new LinkedList<>();
+            if (this.dataBaseType == DataBaseType.Oracle && writeMode.trim().toLowerCase().startsWith("update") ) {
+                String merge = this.writeMode;
+                String[] sArray = WriterUtil.getStrings(merge);
+                this.columns.forEach(column->{
+                    if (Arrays.asList(sArray).contains(column)) {
+                        columns.add(column);
+                    }
+                });
+                this.columns.forEach(column->{
+                    if (!Arrays.asList(sArray).contains(column)) {
+                        columns.add(column);
+                    }
+                });
+            }
+            columns.addAll(this.columns);
 
             // 用于写入数据的时候的类型根据目的表字段类型转换
-            this.resultSetMetaData = DBUtil.getColumnMetaData(connection,
-                    this.table, StringUtils.join(this.columns, ","));
+            this.resultSetMetaData = DBUtil.getColumnMetaData(connection, this.table, StringUtils.join(columns, ","));
             // 写数据库的SQL语句
             calcWriteRecordSql();
 
@@ -548,13 +560,14 @@ public class CommonRdbmsWriter {
             }
         }
 
-        // 直接使用了两个类变量：columnNumber,resultSetMetaData
         protected PreparedStatement fillPreparedStatement(PreparedStatement preparedStatement, Record record)
                 throws SQLException {
-            for (int i = 0; i < this.columnNumber; i++) {
-                int columnSqltype = this.resultSetMetaData.getMiddle().get(i);
+            for (int i = 0; i < this.resultSetMetaData.getLeft().size(); i++) {
+                int columnSqlType = this.resultSetMetaData.getMiddle().get(i);
                 String typeName = this.resultSetMetaData.getRight().get(i);
-                preparedStatement = fillPreparedStatementColumnType(preparedStatement, i, columnSqltype, typeName, record.getColumn(i));
+                String column = this.resultSetMetaData.getLeft().get(i);
+                Column columnValue = record.getColumn(this.columns.indexOf(column));
+                preparedStatement = fillPreparedStatementColumnType(preparedStatement, i, columnSqlType, typeName,columnValue);
             }
 
             return preparedStatement;
